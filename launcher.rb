@@ -43,7 +43,7 @@ def launch_build_request(project_build_id, env_type)
 end
 
 def fetch_build_request(deployment_id)
-  uri = URI("#{HOST}/api/deployments#{deployment_id}")
+  uri = URI("#{HOST}/api/deployments/#{deployment_id}")
   response = Net::HTTP.get_response(uri, headers)
   raise "Response to Workato failed: #{response.body}" unless response.code == "200"
 
