@@ -17,10 +17,10 @@ runs:
       with:
         ruby-version: '3.1'
     - name: Run tests
-      if: ${{ inputs.test == true }}
+      if: ${{ inputs.test == 'true' }}
       run: echo ${{ github.event.pull_request.body }} | ruby launcher.rb test
       shell: bash
     - name: Deploy
-      if: ${{ inputs.deploy == true }}
+      if: ${{ inputs.deploy == 'true' }}
       run: echo ${{ github.event.pull_request.body }} | ruby launcher.rb deploy
       shell: bash
