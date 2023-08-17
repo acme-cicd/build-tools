@@ -108,11 +108,11 @@ end
 project_id = nil
 project_build_id = nil
 
-ARGF.each do |line|
+$stdin.each_line do |line|
   if (m = line.match(/^project_build_id: (?<project_build_id>\d+)/))
     project_build_id = m[:project_build_id]
   end
-  if (m = line.match(/^project_id: (?<project_build_id>\d+)/))
+  if (m = line.match(/^project_id: (?<project_id>\d+)/))
     project_id = m[:project_id]
   end
 end
