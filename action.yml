@@ -18,17 +18,13 @@ runs:
         ruby-version: '3.1'
     - name: Run tests
       if: ${{ inputs.test == 'true' }}
-      run: |
-        read -r -d '' body << EOF
-        ${{ github.event.pull_request.body }}
-        EOF
-        echo $body | ruby launcher.rb test
+      env:
+        pr_body: ${{ github.event.pull_request.body }}
+      run: echo "$pr_body" | ruby launcher.rb test
       shell: bash
     - name: Deploy
       if: ${{ inputs.deploy == 'true' }}
-      run: |
-        read -r -d '' body << EOF
-        ${{ github.event.pull_request.body }}
-        EOF
-        echo $body | ruby launcher.rb deploy
+      env:
+        pr_body: ${{ github.event.pull_request.body }}
+      run: echo "$pr_body" | ruby launcher.rb deploy
       shell: bash
