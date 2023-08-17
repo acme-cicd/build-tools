@@ -122,7 +122,7 @@ unless project_id && project_build_id
   exit(1)
 end
 
-case ARGV[1]
+case ARGV[0]
 when "test"
   deploy_to_env(project_build_id, "test")
   run_test_cases(project_id)
