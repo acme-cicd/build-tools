@@ -39,7 +39,7 @@ def launch_build_request(project_build_id, env_type)
   raise "Response to Workato failed: #{response.body}" unless response.code == "200"
 
   result = JSON.parse(response.body)
-  result.dig("data", "id")
+  result["id"]
 end
 
 def fetch_build_request(deployment_id)
@@ -88,10 +88,10 @@ def deploy_to_env(project_build_id, env_type)
 
   details = wait_until_request_is_completed do
     result = fetch_build_request(deployment_id)
-    result if %w[diff_calculation_failed deploy_finished deploy_failed].include?(result.dig("data", "state"))
+    result if %w[diff_calculation_failed deploy_finished deploy_failed].include?(result["state"])
   end
   
-  case details.dig("data", "state")
+  case details["state"]
   when "diff_calculation_failed"
     puts "\n\nDiff calculation failed\n\n"
     puts details
