@@ -53,11 +53,11 @@ end
 def wait_until_request_is_completed
   details = nil
 
-  sleep 5
-
   100.times do
     details = yield
     break if details
+
+    sleep 5
   end
 
   details
@@ -88,20 +88,15 @@ def deploy_to_env(project_build_id, env_type)
 
   details = wait_until_request_is_completed do
     result = fetch_build_request(deployment_id)
-    result if %w[diff_calculation_failed deploy_finished deploy_failed].include?(result["state"])
+    result if result["state"] == "success"
   end
   
-  case details["state"]
-  when "diff_calculation_failed"
-    puts "\n\nDiff calculation failed\n\n"
-    puts details
-    exit 1
-  when "deploy_failed"
-    puts "\n\nDeployment failed\n\n"
-    puts details
-    exit 1
-  else
+  if details["state"] == "success"
     puts "Deployment succeeded"
+  else
+    puts "Deployment failed\n\n"
+    puts details
+    exit 1
   end
 end
 
