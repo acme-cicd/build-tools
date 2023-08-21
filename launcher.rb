@@ -168,7 +168,7 @@ when "test"
     exit(1)
   end
 
-  # deploy_to_env(project_build_id, "test")
+  deploy_to_env(project_build_id, "test")
   run_test_cases(project_id)
 when "deploy"
   unless project_build_id
