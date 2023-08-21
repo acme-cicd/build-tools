@@ -138,7 +138,12 @@ def deploy_to_env(project_build_id, env_type)
 
   details = wait_until_request_is_completed do
     result = fetch_build_request(deployment_id)
-    result if result["state"] == "success"
+    if result["state"] == "success"
+      result
+    else
+      puts "The package is being deployed..."
+      nil
+    end
   end
   
   if details["state"] == "success"
