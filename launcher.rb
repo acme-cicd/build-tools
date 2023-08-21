@@ -46,6 +46,28 @@ def fetch_run_request(id)
   JSON.parse(response.body)
 end
 
+def fetch_project_id_on_test_env(project_build_id)
+  uri = URI("#{HOST}/api/project_builds/#{project_build_id}")
+
+  response = Net::HTTP.get_response(uri, headers(:dev))
+  check_response!(response)
+  project_id_on_dev_env = JSON.parse(response.body)["project_id"]
+
+  uri = URI("#{HOST}/api/projects")
+
+  response = Net::HTTP.get_response(uri, headers(:dev))
+  check_response!(response)
+  dev_projects = JSON.parse(response.body)
+  project_name = dev_projects.find do |project|
+    project["id"] == Integer(project_id_on_dev_env)
+  end["name"]
+
+  response = Net::HTTP.get_response(uri, headers(:test))
+  check_response!(response)
+  test_projects = JSON.parse(response.body)
+  test_projects.find { |project| project["name"] == project_name }["id"]
+end
+
 def launch_build_request(project_build_id, env_type)
   uri = URI("#{HOST}/api/project_builds/#{project_build_id}/deploy?environment_type=#{env_type}")
 
@@ -162,26 +184,19 @@ $stdin.each_line do |line|
   if (m = line.match(/^project_build_id: (?<project_build_id>\d+)/))
     project_build_id = Integer(m[:project_build_id], exception: false)
   end
-  if (m = line.match(/^project_id: (?<project_id>\d+)/))
-    project_id = Integer(m[:project_id], exception: false)
-  end
+end
+
+unless project_build_id
+  puts color(:red, "Incorrect input: project_build_id is required")
+  exit(1)
 end
 
 case ARGV[0]
 when "test"
-  unless project_id && project_build_id
-    puts color(:red, "Incorrect input: project_id and project_build_id are required")
-    exit(1)
-  end
-
   deploy_to_env(project_build_id, "test")
+  project_id = fetch_project_id_on_test_env(project_build_id)
   run_test_cases(project_id)
 when "deploy"
-  unless project_build_id
-    puts color(:red, "Incorrect input: project_build_id is required")
-    exit(1)
-  end
-
   deploy_to_env(project_build_id, "prod")
 else
   puts color(:red, "Incorrect command. 'test' and 'deploy' are supported")
