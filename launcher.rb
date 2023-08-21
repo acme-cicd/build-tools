@@ -177,12 +177,11 @@ def deploy_to_env(project_build_id, env_type)
   end
 end
 
-project_id = nil
 project_build_id = nil
 
 $stdin.each_line do |line|
-  if (m = line.match(/^project_build_id: (?<project_build_id>\d+)/))
-    project_build_id = Integer(m[:project_build_id], exception: false)
+  if (m = line.match(/\bproject_build_id=(\d+)\b/))
+    project_build_id = Integer(m[1], exception: false)
   end
 end
 
