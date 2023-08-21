@@ -65,22 +65,57 @@ end
 
 def run_test_cases(project_id)
   run_request_id = launch_run_request(project_id)
-  details = wait_until_request_is_completed do
+  tests = wait_until_request_is_completed do
     result = fetch_run_request(run_request_id)
-    result if result.dig("data", "status") == "completed"
+    if result.dig("data", "status") == "completed"
+      result
+    else
+      puts "Test cases are being executed..."
+      nil
+    end
   end
 
-  failed_requests = details["data"]["results"].select do |result|
+  puts "Executed test cases:"
+  report_tests(tests)
+
+  failed_tests = tests["data"]["results"].select do |result|
     result["status"] != "succeeded"
   end
 
-  if failed_requests.any?
-    puts "\n\nSome of the tests failed\n\n"
-    puts failed_requests
-    exit 1
+  if failed_tests.none?
+    puts color(:green, "All tests passed successfully.")
   else
-    puts "Tests passed successfully"
+    puts "\n\n=================="
+    puts color(:red, "Failed test cases:")
+    report_tests(failed_tests)
+    exit 1
   end
+end
+
+def report_tests(tests)
+  tests_by_recipe = tests.group_by { |t| t.dig("recipe", "name") }
+  tests_by_recipe.each do |recipe_name, tests|
+    puts "  #{recipe_name}"
+    tests.each do |test|
+      recipe_id = test.dig("recipe", "id")
+      job_id = test.dig("job", "id")
+      link = "#{HOST}/recipes/#{recipe_id}/job/#{job_id}"
+      puts "    #{test.dig('test_case', 'name')}: #{format_test_status(test)}. Link: #{link}"
+    end
+  end
+end
+
+def format_test_status(test)
+  if test["status"] == "succeeded"
+    color(:green, "PASS")
+  else
+    color(:red, "FAIL")
+  end
+end
+
+def color(color, string)
+  colors = { red: 31, green: 32, blue: 34 }
+  "\033[#{colors.fetch(color)}m#{string}\033[0m"
 end
 
 def deploy_to_env(project_build_id, env_type)
@@ -92,9 +127,9 @@ def deploy_to_env(project_build_id, env_type)
   end
   
   if details["state"] == "success"
-    puts "Deployment succeeded"
+    puts color(:green, "Deployment succeeded")
   else
-    puts "Deployment failed\n\n"
+    puts color(:red, "Deployment failed\n\n")
     puts details
     exit 1
   end
