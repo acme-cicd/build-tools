@@ -3,9 +3,10 @@
 require "net/http"
 require "json"
 
-ds = ENV["WORKATO_DS"] || "www"
+ds = ENV["WORKATO_DS"] || "preview" # new trigger is available only on preview
 HOST = "https://#{ds}.workato.com"
-TOKEN = ENV["WORKATO_AUTH_TOKEN"]
+DEV_ENV_TOKEN = ENV["WORKATO_DEV_ENV_AUTH_TOKEN"]
+TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 
 def headers
   {
