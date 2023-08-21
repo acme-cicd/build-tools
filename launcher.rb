@@ -10,10 +10,9 @@ TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 
 def headers(env)
   token =
-    if env == :dev
-      DEV_ENV_TOKEN
-    elsif env == :test
-      TEST_ENV_TOKEN
+    case env
+    when :dev then DEV_ENV_TOKEN
+    when :test then TEST_ENV_TOKEN
     else
       raise "Invalid env #{env}"
     end
@@ -24,11 +23,16 @@ def headers(env)
   }
 end
 
+def check_response!(response)
+  host = HOST[8..-1]
+  raise "Response to #{host} failed: #{response.body}" unless response.code == "200"
+end
+
 def launch_run_request(project_id)
   uri = URI("#{HOST}/api/test_cases/run_requests")
   body = { project_id: project_id }.to_json
   response = Net::HTTP.post(uri, body, headers(:test))
-  raise "Response to Workato failed: #{response.body}" unless response.code == "200"
+  check_response!(response)
 
   result = JSON.parse(response.body)
   result.dig("data", "id")
@@ -37,7 +41,7 @@ end
 def fetch_run_request(id)
   uri = URI("#{HOST}/api/test_cases/run_requests/#{id}")
   response = Net::HTTP.get_response(uri, headers(:test))
-  raise "Response to Workato failed: #{response.body}" unless response.code == "200"
+  check_response!(response)
 
   JSON.parse(response.body)
 end
@@ -46,7 +50,7 @@ def launch_build_request(project_build_id, env_type)
   uri = URI("#{HOST}/api/project_builds/#{project_build_id}/deploy?environment_type=#{env_type}")
 
   response = Net::HTTP.post(uri, "", headers(:dev))
-  raise "Response to Workato failed: #{response.body}" unless response.code == "200"
+  check_response!(response)
 
   result = JSON.parse(response.body)
   result["id"]
@@ -55,7 +59,7 @@ end
 def fetch_build_request(deployment_id)
   uri = URI("#{HOST}/api/deployments/#{deployment_id}")
   response = Net::HTTP.get_response(uri, headers(:dev))
-  raise "Response to Workato failed: #{response.body}" unless response.code == "200"
+  check_response!(response)
 
   JSON.parse(response.body)
 end
