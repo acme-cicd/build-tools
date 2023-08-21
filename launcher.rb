@@ -148,18 +148,23 @@ $stdin.each_line do |line|
   end
 end
 
-unless project_id && project_build_id
-  puts "Incorrect input"
-  exit(1)
-end
-
 case ARGV[0]
 when "test"
+  unless project_id && project_build_id
+    puts color(:red, "Incorrect input: project_id and project_build_id are required")
+    exit(1)
+  end
+
   deploy_to_env(project_build_id, "test")
   run_test_cases(project_id)
 when "deploy"
+  unless project_build_id
+    puts color(:red, "Incorrect input: project_build_id is required")
+    exit(1)
+  end
+
   deploy_to_env(project_build_id, "prod")
 else
-  puts "Incorrect command"
+  puts color(:red, "Incorrect command. 'test' and 'deploy' are supported")
   exit(1)
 end
