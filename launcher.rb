@@ -79,7 +79,7 @@ end
 
 def run_test_cases(project_id)
   run_request_id = launch_run_request(project_id)
-  tests = wait_until_request_is_completed do
+  request_details = wait_until_request_is_completed do
     result = fetch_run_request(run_request_id)
     if result.dig("data", "status") == "completed"
       result
@@ -88,11 +88,12 @@ def run_test_cases(project_id)
       nil
     end
   end
+  tests = request_details["data"]["results"]
 
   puts "Executed test cases:"
   report_tests(tests)
 
-  failed_tests = tests["data"]["results"].select do |result|
+  failed_tests = tests.select do |result|
     result["status"] != "succeeded"
   end
 
