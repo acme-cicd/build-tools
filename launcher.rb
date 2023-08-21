@@ -154,10 +154,10 @@ project_build_id = nil
 
 $stdin.each_line do |line|
   if (m = line.match(/^project_build_id: (?<project_build_id>\d+)/))
-    project_build_id = m[:project_build_id]
+    project_build_id = Integer(m[:project_build_id], exception: false)
   end
   if (m = line.match(/^project_id: (?<project_id>\d+)/))
-    project_id = m[:project_id]
+    project_id = Integer(m[:project_id], exception: false)
   end
 end
 
