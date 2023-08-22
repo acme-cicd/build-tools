@@ -31,7 +31,8 @@ end
 
 def send_webhook(success:)
   body = { success: success }.to_json
-  Net::HTTP.post(URI(BUILD_COMPLETE_WEBHOOK_URL), body, {})
+  headers = { "Content-Type" => "application/json" }
+  Net::HTTP.post(URI(BUILD_COMPLETE_WEBHOOK_URL), body, headers)
 end
 
 def launch_run_request(project_id)
