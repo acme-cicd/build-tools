@@ -187,11 +187,9 @@ def deploy_to_env(project_build_id, env_type)
   
   if details["state"] == "success"
     puts color(:green, "Deployment succeeded")
-    send_merge_webhook(success: "true")
   else
     puts color(:red, "Deployment failed\n\n")
     puts details
-    send_merge_webhook(success: "false")
     exit 1
   end
 end
@@ -217,6 +215,7 @@ when "test"
   run_test_cases(project_id)
 when "deploy"
   deploy_to_env(project_build_id, "prod")
+  send_merge_webhook(success: "true")
 else
   puts color(:red, "Incorrect command. 'test' and 'deploy' are supported")
   exit(1)
