@@ -8,6 +8,7 @@ HOST = "https://#{dc}.workato.com"
 DEV_ENV_TOKEN = ENV["WORKATO_DEV_ENV_AUTH_TOKEN"]
 TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 BUILD_COMPLETE_WEBHOOK_URL = "https://webhooks.preview.workato.com/webhooks/rest/19c579ff-b11c-49a5-946c-c31bea50839f/github-build-complete"
+PR_IS_MERGED_WEBHOOK_URL = "https://webhooks.preview.workato.com/webhooks/rest/19c579ff-b11c-49a5-946c-c31bea50839f/pr-is-merged"
 
 def headers(env)
   token =
@@ -29,10 +30,16 @@ def check_response!(response)
   raise "Response to #{host} failed: #{response.body}" unless response.code == "200"
 end
 
-def send_webhook(success:)
+def send_build_complete_webhook(success:)
   body = { success: success }.to_json
   headers = { "Content-Type" => "application/json" }
   Net::HTTP.post(URI(BUILD_COMPLETE_WEBHOOK_URL), body, headers)
+end
+
+def send_merge_webhook(success:)
+  body = { success: success }.to_json
+  headers = { "Content-Type" => "application/json" }
+  Net::HTTP.post(URI(PR_IS_MERGED_WEBHOOK_URL), body, headers)
 end
 
 def launch_run_request(project_id)
@@ -129,12 +136,12 @@ def run_test_cases(project_id)
   if failed_tests.none?
     coverage = request_details.dig("data", "coverage", "value")
     puts color(:green, "All tests passed successfully with #{coverage}\% coverage.")
-    send_webhook(success: "true")
+    send_build_complete_webhook(success: "true")
   else
     puts "\n\n=================="
     puts color(:red, "Failed test cases:")
     report_tests(failed_tests)
-    send_webhook(success: "false")
+    send_build_complete_webhook(success: "false")
     exit 1
   end
 end
@@ -180,9 +187,11 @@ def deploy_to_env(project_build_id, env_type)
   
   if details["state"] == "success"
     puts color(:green, "Deployment succeeded")
+    send_merge_webhook(success: "true")
   else
     puts color(:red, "Deployment failed\n\n")
     puts details
+    send_merge_webhook(success: "false")
     exit 1
   end
 end
@@ -197,7 +206,7 @@ end
 
 unless project_build_id
   puts color(:red, "Incorrect input: project_build_id is required")
-  send_webhook(success: "false")
+  send_build_complete_webhook(success: "false")
   exit(1)
 end
 
