@@ -120,7 +120,8 @@ def run_test_cases(project_id)
   end
 
   if failed_tests.none?
-    puts color(:green, "All tests passed successfully.")
+    coverage = request_details.dig("data", "coverage", "value")
+    puts color(:green, "All tests passed successfully with #{coverage}\% coverage.")
   else
     puts "\n\n=================="
     puts color(:red, "Failed test cases:")
