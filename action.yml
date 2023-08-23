@@ -20,7 +20,7 @@ runs:
       if: ${{ inputs.test == 'true' }}
       env:
         pr_body: ${{ github.event.pull_request.body }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_URL: ${{ github.event.pull_request.url }}
       run: |
         cd "${{ github.action_path }}"
         echo "$pr_body" | ruby launcher.rb test
@@ -29,7 +29,7 @@ runs:
       if: ${{ inputs.deploy == 'true' }}
       env:
         pr_body: ${{ github.event.pull_request.body }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_URL: ${{ github.event.pull_request.url }}
       run: |
         cd "${{ github.action_path }}"
         echo "$pr_body" | ruby launcher.rb deploy
