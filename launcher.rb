@@ -9,6 +9,7 @@ DEV_ENV_TOKEN = ENV["WORKATO_DEV_ENV_AUTH_TOKEN"]
 TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 BUILD_COMPLETE_WEBHOOK_URL = "https://webhooks.preview.workato.com/webhooks/rest/19c579ff-b11c-49a5-946c-c31bea50839f/github-build-complete"
 PR_IS_MERGED_WEBHOOK_URL = "https://webhooks.preview.workato.com/webhooks/rest/19c579ff-b11c-49a5-946c-c31bea50839f/pr-is-merged"
+PR_URL = "https://github.com/workato-actions/build-tools-demo/pull/#{ENV['PR_NUMBER']}"
 
 def headers(env)
   token =
@@ -31,13 +32,13 @@ def check_response!(response)
 end
 
 def send_build_complete_webhook(success:)
-  body = { success: success }.to_json
+  body = { success: success, pr_url: PR_URL }.to_json
   headers = { "Content-Type" => "application/json" }
   Net::HTTP.post(URI(BUILD_COMPLETE_WEBHOOK_URL), body, headers)
 end
 
 def send_merge_webhook(success:)
-  body = { success: success }.to_json
+  body = { success: success, pr_url: PR_URL }.to_json
   headers = { "Content-Type" => "application/json" }
   Net::HTTP.post(URI(PR_IS_MERGED_WEBHOOK_URL), body, headers)
 end
