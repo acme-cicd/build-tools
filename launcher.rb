@@ -7,8 +7,8 @@ dc = ENV["WORKATO_DC"] || "preview" # new trigger is available only on preview
 HOST = "https://#{dc}.workato.com"
 DEV_ENV_TOKEN = ENV["WORKATO_DEV_ENV_AUTH_TOKEN"]
 TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
-BUILD_COMPLETE_WEBHOOK_URL = "https://webhooks.preview.workato.com/webhooks/rest/19c579ff-b11c-49a5-946c-c31bea50839f/github-build-complete"
-PR_IS_MERGED_WEBHOOK_URL = "https://webhooks.preview.workato.com/webhooks/rest/19c579ff-b11c-49a5-946c-c31bea50839f/pr-is-merged"
+BUILD_COMPLETE_WEBHOOK_URL = ENV["BUILD_COMPLETE_WEBHOOK_URL"]
+PR_IS_MERGED_WEBHOOK_URL = ENV["PR_IS_MERGED_WEBHOOK_URL"]
 PR_URL = "https://github.com/workato-actions/build-tools-demo/pull/#{ENV['PR_NUMBER']}"
 
 def headers(env)
