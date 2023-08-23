@@ -24,7 +24,7 @@ runs:
         cd "${{ github.action_path }}"
         echo "$pr_body" | ruby launcher.rb test
       shell: bash
-    - name: Deploy
+    - name: Deploy to Production
       if: ${{ inputs.deploy == 'true' }}
       env:
         pr_body: ${{ github.event.pull_request.body }}
