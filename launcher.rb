@@ -8,7 +8,7 @@ HOST = "https://#{dc}.workato.com"
 DEV_ENV_TOKEN = ENV["WORKATO_DEV_ENV_AUTH_TOKEN"]
 TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 CALLBACK_WEBHOOK_URL = ENV["CALLBACK_WEBHOOK_URL"]
-PR_URL = ENV["PR_URL"]
+PR_URL = ENV["PR_URL"].to_s.gsub("api.github", "github").gsub("/repos/", "/").gsub("/pulls/", "/pull/")
 
 def headers(env)
   token =
