@@ -27,7 +27,10 @@ end
 
 def check_response!(response)
   host = HOST[8..-1]
-  raise "Response to #{host} failed: #{response.body}" unless response.code == "200"
+  unless response.code == "200"
+    send_webhook(event: "pr_build_failed")
+    raise "Response to #{host} failed: #{response.body}"
+  end
 end
 
 def send_webhook(payload = {})
