@@ -7,8 +7,7 @@ dc = ENV["WORKATO_DC"] || "preview" # new trigger is available only on preview
 HOST = "https://#{dc}.workato.com"
 DEV_ENV_TOKEN = ENV["WORKATO_DEV_ENV_AUTH_TOKEN"]
 TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
-BUILD_COMPLETE_WEBHOOK_URL = ENV["BUILD_COMPLETE_WEBHOOK_URL"]
-PR_IS_MERGED_WEBHOOK_URL = ENV["PR_IS_MERGED_WEBHOOK_URL"]
+CALLBACK_WEBHOOK_URL = ENV["CALLBACK_WEBHOOK_URL"]
 PR_URL = ENV["PR_URL"]
 
 def headers(env)
@@ -31,16 +30,10 @@ def check_response!(response)
   raise "Response to #{host} failed: #{response.body}" unless response.code == "200"
 end
 
-def send_build_complete_webhook(success:)
-  body = { success: success, pr_url: PR_URL }.to_json
+def send_webhook(payload = {})
+  payload.merge!(pr_url: PR_URL)
   headers = { "Content-Type" => "application/json" }
-  Net::HTTP.post(URI(BUILD_COMPLETE_WEBHOOK_URL), body, headers)
-end
-
-def send_merge_webhook(success:)
-  body = { success: success, pr_url: PR_URL }.to_json
-  headers = { "Content-Type" => "application/json" }
-  Net::HTTP.post(URI(PR_IS_MERGED_WEBHOOK_URL), body, headers)
+  Net::HTTP.post(URI(CALLBACK_WEBHOOK_URL), body, headers)
 end
 
 def launch_run_request(project_id)
@@ -137,12 +130,12 @@ def run_test_cases(project_id)
   if failed_tests.none?
     coverage = request_details.dig("data", "coverage", "value")
     puts color(:green, "All tests passed successfully with #{coverage}\% coverage.")
-    send_build_complete_webhook(success: "true")
+    send_webhook(event: "pr_build_succeeded")
   else
     puts "\n\n=================="
     puts color(:red, "Failed test cases:")
     report_tests(failed_tests)
-    send_build_complete_webhook(success: "false")
+    send_webhook(event: "pr_build_failed")
     exit 1
   end
 end
@@ -205,7 +198,7 @@ end
 
 unless project_build_id
   puts color(:red, "Incorrect input: project_build_id is required")
-  send_build_complete_webhook(success: "false")
+  send_webhook(event: "pr_build_failed")
   exit(1)
 end
 
@@ -216,7 +209,7 @@ when "test"
   run_test_cases(project_id)
 when "deploy"
   deploy_to_env(project_build_id, "prod")
-  send_merge_webhook(success: "true")
+  send_webhook(event: "pr_deployment_succeeded")
 else
   puts color(:red, "Incorrect command. 'test' and 'deploy' are supported")
   exit(1)
