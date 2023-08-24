@@ -36,7 +36,7 @@ end
 def send_webhook(payload = {})
   payload.merge!(pr_url: PR_URL)
   headers = { "Content-Type" => "application/json" }
-  Net::HTTP.post(URI(CALLBACK_WEBHOOK_URL), payload, headers)
+  Net::HTTP.post(URI(CALLBACK_WEBHOOK_URL), payload.to_json, headers)
 end
 
 def launch_run_request(project_id)
