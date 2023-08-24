@@ -211,6 +211,7 @@ when "test"
   project_id = fetch_project_id_on_test_env(project_build_id)
   run_test_cases(project_id)
 when "deploy"
+  send_webhook(event: "pr_merged")
   deploy_to_env(project_build_id, "prod")
   send_webhook(event: "pr_deployment_succeeded")
 else
