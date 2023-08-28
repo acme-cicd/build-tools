@@ -96,9 +96,15 @@ def fetch_project_id_on_test_env
 end
 
 def launch_build_request(project_build_id, env_type)
+  release = PR_TITLE.split("release :").last.strip
+  description = PR_BODY.split("**Visual diff").first.sub("### ", "").gsub("\n\n", ". ")
+  payload = {
+    description: "Release #{release}. #{description}"
+  }
+
   uri = URI("#{HOST}/api/project_builds/#{project_build_id}/deploy?environment_type=#{env_type}")
 
-  response = Net::HTTP.post(uri, "", headers(:dev))
+  response = Net::HTTP.post(uri, payload.to_json, headers(:dev))
   check_response!(response)
 
   result = JSON.parse(response.body)
