@@ -95,7 +95,7 @@ end
 
 def launch_build_request(project_build_id, env_type)
   release = PR_TITLE.split("release :").last.strip
-  description = PR_BODY.split("**Visual diff").first.sub("### ", "").gsub("\n\n", ". ")
+  description = PR_BODY.split("**Visual diff").first.strip.sub("### ", "").gsub("\n\n", ". ")
   payload = {
     description: "Release #{release}. #{description}"
   }
