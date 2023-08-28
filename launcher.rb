@@ -10,6 +10,7 @@ TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 CALLBACK_WEBHOOK_URL = ENV["CALLBACK_WEBHOOK_URL"]
 PR_BODY = ENV["PR_BODY"]
 PR_URL = ENV["PR_URL"].to_s.gsub("api.github", "github").gsub("/repos/", "/").gsub("/pulls/", "/pull/")
+PROJECT_BUILD_ID = PR_BODY.tr("\n", " ").match(/\bproject_build_id=(\d+)\b/)[1].to_i
 FOLDER_ID = PR_BODY.tr("\n", " ").match(/\bfid=(\d+)\b/)[1].to_i
 
 def headers(env)
@@ -38,7 +39,8 @@ end
 def send_webhook(payload = {})
   payload.merge!(
     pr_url: PR_URL,
-    package_url: "#{HOST}/?fid=#{FOLDER_ID}#assets"
+    folder_id: FOLDER_ID,
+    build_id: PROJECT_BUILD_ID
   )
   headers = { "Content-Type" => "application/json" }
   Net::HTTP.post(URI(CALLBACK_WEBHOOK_URL), payload.to_json, headers)
@@ -198,15 +200,9 @@ def deploy_to_env(project_build_id, env_type)
   end
 end
 
-project_build_id = nil
+### Start of the script
 
-PR_BODY.each_line do |line|
-  if (m = line.match(/\bproject_build_id=(\d+)\b/))
-    project_build_id = Integer(m[1], exception: false)
-  end
-end
-
-unless project_build_id
+if PROJECT_BUILD_ID == 0
   puts color(:red, "Incorrect input: project_build_id is required")
   send_webhook(event: "pr_build_failed")
   exit(1)
@@ -214,12 +210,12 @@ end
 
 case ARGV[0]
 when "test_package"
-  deploy_to_env(project_build_id, "test")
-  project_id = fetch_project_id_on_test_env(project_build_id)
+  deploy_to_env(PROJECT_BUILD_ID, "test")
+  project_id = fetch_project_id_on_test_env(PROJECT_BUILD_ID)
   run_test_cases(project_id)
 when "deploy_to_production"
   send_webhook(event: "pr_merged")
-  deploy_to_env(project_build_id, "prod")
+  deploy_to_env(PROJECT_BUILD_ID, "prod")
   send_webhook(event: "pr_deployment_succeeded")
 when "notify_review_requested"
   send_webhook(event: "reviewer_assigned", author: ENV["AUTHOR"], reviewer: ENV["REVIEWER"])
