@@ -89,7 +89,7 @@ end
 def fetch_project_id_on_test_env
   project_name = fetch_project_name
 
-  response = Net::HTTP.get_response(uri, headers(:test))
+  response = Net::HTTP.get_response(URI("#{HOST}/api/projects"), headers(:test))
   check_response!(response)
   test_projects = JSON.parse(response.body)
   test_projects.find { |project| project["name"] == project_name }["id"]
