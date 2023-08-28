@@ -8,7 +8,9 @@ HOST = "https://#{dc}.workato.com"
 DEV_ENV_TOKEN = ENV["WORKATO_DEV_ENV_AUTH_TOKEN"]
 TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 CALLBACK_WEBHOOK_URL = ENV["CALLBACK_WEBHOOK_URL"]
-PR_URL = ENV["PR_URL"]
+PR_BODY = ENV["PR_BODY"]
+PR_URL = ENV["PR_URL"].to_s.gsub("api.github", "github").gsub("/repos/", "/").gsub("/pulls/", "/pull/")
+FOLDER_ID = PR_BODY.tr("\n", " ").match(/\bfid=(\d+)\b/)[1].to_i
 
 def headers(env)
   token =
@@ -34,7 +36,10 @@ def check_response!(response)
 end
 
 def send_webhook(payload = {})
-  payload.merge!(pr_url: PR_URL)
+  payload.merge!(
+    pr_url: PR_URL,
+    package_url: "#{HOST}/?fid=#{FOLDER_ID}#assets"
+  )
   headers = { "Content-Type" => "application/json" }
   Net::HTTP.post(URI(CALLBACK_WEBHOOK_URL), payload.to_json, headers)
 end
@@ -193,7 +198,7 @@ end
 
 project_build_id = nil
 
-$stdin.each_line do |line|
+PR_BODY.each_line do |line|
   if (m = line.match(/\bproject_build_id=(\d+)\b/))
     project_build_id = Integer(m[1], exception: false)
   end
