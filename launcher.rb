@@ -42,6 +42,8 @@ def send_webhook(payload = {})
   )
   headers = { "Content-Type" => "application/json" }
   Net::HTTP.post(URI(CALLBACK_WEBHOOK_URL), payload.to_json, headers)
+
+  puts "\n\nSent the callback to Workato."
 end
 
 def launch_run_request(project_id)
