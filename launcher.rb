@@ -213,15 +213,19 @@ unless project_build_id
 end
 
 case ARGV[0]
-when "test"
+when "test_package"
   deploy_to_env(project_build_id, "test")
   project_id = fetch_project_id_on_test_env(project_build_id)
   run_test_cases(project_id)
-when "deploy"
+when "deploy_to_production"
   send_webhook(event: "pr_merged")
   deploy_to_env(project_build_id, "prod")
   send_webhook(event: "pr_deployment_succeeded")
+when "notify_review_requested"
+  send_webhook(event: "reviewer_assigned", author: ENV["AUTHOR"], reviewer: ENV["REVIEWER"])
+when "notify_pr_approved"
+  send_webhook(event: "pr_approved", author: ENV["AUTHOR"], reviewer: ENV["REVIEWER"])
 else
-  puts color(:red, "Incorrect command. 'test' and 'deploy' are supported")
+  puts color(:red, "Incorrect command. 'test', 'deploy', 'notify_review_requested', 'notify_pr_approved' are supported")
   exit(1)
 end

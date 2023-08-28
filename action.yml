@@ -2,7 +2,7 @@ name: Build Tools
 description: Build Tools
 inputs:
   action:
-    description: 'Command to run: [test, deploy]'
+    description: 'Command to run: one of [test, deploy, notify_review_requested, notify_pr_approved]'
     type: string
     required: true
 runs:
@@ -12,21 +12,11 @@ runs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.1'
-    - name: Run tests
-      if: ${{ inputs.action == 'test' }}
+    - name: ${{ inputs.action }}
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
         PR_URL: ${{ github.event.pull_request.url }}
       run: |
         cd "${{ github.action_path }}"
-        ruby launcher.rb test
-      shell: bash
-    - name: Deploy to Production
-      if: ${{ inputs.action == 'deploy' }}
-      env:
-        PR_BODY: ${{ github.event.pull_request.body }}
-        PR_URL: ${{ github.event.pull_request.url }}
-      run: |
-        cd "${{ github.action_path }}"
-        ruby launcher.rb deploy
+        ruby launcher.rb ${{ inputs.action }}
       shell: bash
