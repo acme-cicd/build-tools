@@ -1,14 +1,10 @@
 name: Build Tools
 description: Build Tools
 inputs:
-  test:
-    description: 'Run tests'
-    type: boolean
-    required: false
-  deploy:
-    description: 'Deploy'
-    type: boolean
-    required: false
+  action:
+    description: 'Command to run: [test, deploy]'
+    type: string
+    required: true
 runs:
   using: 'composite'
   steps:
