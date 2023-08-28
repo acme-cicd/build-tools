@@ -13,7 +13,7 @@ runs:
       with:
         ruby-version: '3.1'
     - name: Run tests
-      if: ${{ inputs.test == 'true' }}
+      if: ${{ inputs.action == 'test' }}
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
         PR_URL: ${{ github.event.pull_request.url }}
@@ -22,7 +22,7 @@ runs:
         ruby launcher.rb test
       shell: bash
     - name: Deploy to Production
-      if: ${{ inputs.deploy == 'true' }}
+      if: ${{ inputs.action == 'deploy' }}
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
         PR_URL: ${{ github.event.pull_request.url }}
