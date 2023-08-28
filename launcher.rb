@@ -10,6 +10,7 @@ TEST_ENV_TOKEN = ENV["WORKATO_TEST_ENV_AUTH_TOKEN"]
 CALLBACK_WEBHOOK_URL = ENV["CALLBACK_WEBHOOK_URL"]
 PR_BODY = ENV["PR_BODY"]
 PR_URL = ENV["PR_URL"].to_s.gsub("api.github", "github").gsub("/repos/", "/").gsub("/pulls/", "/pull/")
+PR_TITLE = ENV["PR_TITLE"]
 PROJECT_BUILD_ID = PR_BODY.tr("\n", " ").match(/\bproject_build_id=(\d+)\b/)[1].to_i
 FOLDER_ID = PR_BODY.tr("\n", " ").match(/\bfid=(\d+)\b/)[1].to_i
 
@@ -40,7 +41,9 @@ def send_webhook(payload = {})
   payload.merge!(
     pr_url: PR_URL,
     folder_id: FOLDER_ID,
-    build_id: PROJECT_BUILD_ID
+    build_id: PROJECT_BUILD_ID,
+    project_name: fetch_project_name,
+    pr_title: PR_TITLE
   )
   headers = { "Content-Type" => "application/json" }
   Net::HTTP.post(URI(CALLBACK_WEBHOOK_URL), payload.to_json, headers)
@@ -66,8 +69,8 @@ def fetch_run_request(id)
   JSON.parse(response.body)
 end
 
-def fetch_project_id_on_test_env(project_build_id)
-  uri = URI("#{HOST}/api/project_builds/#{project_build_id}")
+def fetch_project_name
+  uri = URI("#{HOST}/api/project_builds/#{PROJECT_BUILD_ID}")
 
   response = Net::HTTP.get_response(uri, headers(:dev))
   check_response!(response)
@@ -78,9 +81,13 @@ def fetch_project_id_on_test_env(project_build_id)
   response = Net::HTTP.get_response(uri, headers(:dev))
   check_response!(response)
   dev_projects = JSON.parse(response.body)
-  project_name = dev_projects.find do |project|
+  dev_projects.find do |project|
     project["id"] == Integer(project_id_on_dev_env)
   end["name"]
+end
+
+def fetch_project_id_on_test_env
+  project_name = fetch_project_name
 
   response = Net::HTTP.get_response(uri, headers(:test))
   check_response!(response)
@@ -211,7 +218,7 @@ end
 case ARGV[0]
 when "test_package"
   deploy_to_env(PROJECT_BUILD_ID, "test")
-  project_id = fetch_project_id_on_test_env(PROJECT_BUILD_ID)
+  project_id = fetch_project_id_on_test_env
   run_test_cases(project_id)
 when "deploy_to_production"
   send_webhook(event: "pr_merged")
